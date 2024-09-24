@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Dobór źródła energii{% endblock %}
+
+{% block content %}
+<h1>Dobór odpowiedniego źródła energii</h1>
+
+<form method="POST" action="/save-coordinates" id="energyForm">
+    
+    <!-- Google Map -->
+    <div id="map" style="height: 250px; width: 40%;"></div>
+    
+    <!-- Hidden fields to store latitude and longitude -->
+    <input type="hidden" id="lat" name="latitude">
+    <input type="hidden" id="lng" name="longitude">
+    
+    <!-- Display selected coordinates -->
+    <p id="coordinates"></p>
+
+    <label for="energyUsage">Średnie miesięczne zużycie energii (w kWh):</label><br>
+    <input type="number" id="energyUsage" name="energyUsage" required><br>
+    
+    <label><input type="checkbox" id="dont_know_energy" name="dont_know_energy" onclick="toggleNumPeople()"> Nie wiem</label><br><br>
+    
+    <div id="numPeopleDiv" style="display:none;">
+        <label for="num_people">Liczba domowników:</label><br>
+        <select id="num_people" name="num_people">
+            <option value="1">1 osoba</option>
+            <option value="2">2 osoby</option>
+            <option value="3">3 osoby</option>
+            <option value="4">4 osoby</option>
+            <option value="5">5 osób</option>
+        </select><br><br>
+    </div>
+
+    <label for="budget">Maksymalny budżet na instalację (w PLN):</label><br>
+    <input type="number" id="budget" name="budget" required><br><br>
+    
+    <label for="preference">Preferencje co do źródła energii:</label><br>
+    <select id="preference" name="preference">
+        <option value="">Brak preferencji</option>
+        <option value="solar">Słoneczna</option>
+        <option value="wind">Wiatrowa</option>
+        <option value="geotermal">Geotermalna</option>
+    </select><br><br>
+    
+    <input type="submit" value="Dobierz źródło energii" disabled id="submitBtn">
+</form>
+
+<!-- Google Maps Script -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDCRuvJzsIPPRGz6vUDrDTlCyQleJrKCLk&callback=initMap" async defer></script>
+<script>
+function toggleNumPeople() {
+    var checkBox = document.getElementById("dont_know_energy");
+    var numPeopleDiv = document.getElementById("numPeopleDiv");
+    if (checkBox.checked) {
+        numPeopleDiv.style.display = "block";
+        document.getElementById("energyUsage").disabled = true;
+    } else {
+        numPeopleDiv.style.display = "none";
+        document.getElementById("energyUsage").disabled = false;
+    }
+}
+
+let map;
+let marker;
+
+function initMap() {
+    const polandBounds = {
+        north: 55.0,
+        south: 48.5,
+        west: 14.0,
+        east: 24.0,
+    };
+    
+    const polandCenter = { lat: 52.237049, lng: 21.017532 }; // Warsaw center
+    
+    map = new google.maps.Map(document.getElementById("map"), {
+        center: polandCenter,
+        zoom: 6,
+        restriction: {
+            latLngBounds: polandBounds,
+            strictBounds: true,
+        },
+    });
+
+    map.addListener("click", (event) => {
+        placeMarker(event.latLng);
+    });
+}
+
+function placeMarker(location) {
+    if (marker) {
+        marker.setMap(null);
+    }
+
+    marker = new google.maps.Marker({
+        position: location,
+        map: map,
+    });
+
+    // Set the hidden input values
+    document.getElementById("lat").value = location.lat();
+    document.getElementById("lng").value = location.lng();
+    
+    // Display the coordinates
+    document.getElementById("coordinates").innerHTML = `Wybrane współrzędne: Latitude: ${location.lat()}, Longitude: ${location.lng()}`;
+    
+    // Enable the submit button if all required fields are filled
+    validateForm();
+}
+
+function validateForm() {
+    const lat = document.getElementById("lat").value;
+    const lng = document.getElementById("lng").value;
+    const budget = document.getElementById("budget").value;
+    const energyUsage = document.getElementById("energyUsage").value;
+
+    if (lat && lng && budget && (energyUsage || document.getElementById("dont_know_energy").checked)) {
+        document.getElementById("submitBtn").disabled = false;
+    }
+}
+
+document.getElementById("budget").addEventListener("input", validateForm);
+document.getElementById("energyUsage").addEventListener("input", validateForm);
+
+</script>
+{% endblock %}
