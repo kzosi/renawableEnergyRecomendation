@@ -5,7 +5,7 @@
 {% block content %}
 <h1>Dobór odpowiedniego źródła energii</h1>
 
-<form method="POST" action="/save-coordinates" id="energyForm">
+<form method="POST" id="energyForm">
     
     <!-- Google Map -->
     <div id="map" style="height: 250px; width: 40%;"></div>
@@ -104,7 +104,7 @@ function placeMarker(location) {
     document.getElementById("lng").value = location.lng();
     
     // Display the coordinates
-    document.getElementById("coordinates").innerHTML = `Wybrane współrzędne: Latitude: ${location.lat()}, Longitude: ${location.lng()}`;
+    //document.getElementById("coordinates").innerHTML = `Wybrane współrzędne: Latitude: ${location.lat()}, Longitude: ${location.lng()}`;
     
     // Enable the submit button if all required fields are filled
     validateForm();

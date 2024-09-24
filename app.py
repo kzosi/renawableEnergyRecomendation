@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
-from energy_logic import dobierz_zrodlo_energii  # Importowanie logiki z pliku
+import logging
+from energy_logic import dobierz_zrodlo_energii  
 
 app = Flask(__name__)
 
@@ -15,9 +16,13 @@ zuzycie_na_rok = {
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        location = request.form['location']
+
         budget = float(request.form['budget'])
         preference = request.form['preference'].lower()
+
+        latitude = float(request.form['latitude'])
+        longitude = float(request.form['longitude'])
+
 
         # Sprawdzamy, czy użytkownik zaznaczył "Nie wiem" dla zużycia energii
         if 'dont_know_energy' in request.form:
@@ -27,7 +32,7 @@ def index():
         else:
             energy_usage = float(request.form['energyUsage'])
         
-        rekomendacja = dobierz_zrodlo_energii(location, energy_usage, budget, preference)
+        rekomendacja = dobierz_zrodlo_energii(latitude, longitude, energy_usage, budget, preference)
         return redirect(url_for('best_choice', rekomendacja=rekomendacja))
     
     return render_template('index.html')
@@ -41,16 +46,6 @@ def best_choice():
 def about():
     return render_template('about.html')
 
-@app.route('/save-coordinates', methods=['POST'])
-def save_coordinates():
-    latitude = request.form['latitude']
-    longitude = request.form['longitude']
-    
-    # You can process the coordinates here (e.g., reverse geocoding, etc.)
-    # For now, just print the coordinates
-    print(f"Latitude: {latitude}, Longitude: {longitude}")
-    
-    return f"Coordinates received: Latitude {latitude}, Longitude {longitude}"
 
 if __name__ == "__main__":
     app.run(debug=True)
